@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Forms Automation</title>
+  <link rel="stylesheet" href="/public/styles.css" />
+</head>
+
+<body>
+  <main class="page-shell">
+    <!--       <section class="hero">
+        <div>
+          <p class="eyebrow">Microsoft Forms Automation</p>
+          <h1>Send user batches without retyping them.</h1>
+          <p class="hero-copy">
+            Build a group of users, submit them to the automation service, and
+            resend previous batches whenever you need.
+          </p>
+        </div>
+        <div class="hero-note">
+          <p>Fixed internally for every submission</p>
+          <ul>
+            <li>Lagos State</li>
+            <li>Surulere Branch (Adeniran Ogunsanya Street)</li>
+            <li>Rating: 10</li>
+            <li>Feedback: No issues</li>
+          </ul>
+        </div>
+      </section> -->
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="section-kicker">New Batch</p>
+          <h2>Add customer reviews</h2>
+        </div>
+      </div>
+
+      <form id="user-batch-form" class="user-form">
+        <div id="user-fields" class="user-fields">
+          <div class="user-card" data-user-row>
+            <button class="close-user-btn" type="button" aria-label="Remove user" hidden>
+              <span aria-hidden="true">&times;</span>
+            </button>
+            <div class="user-card-header">
+              <h3>Customer 1</h3>
+            </div>
+            <label>
+              <span>Name</span>
+              <input name="name" type="text" required />
+            </label>
+            <label>
+              <span>Phone</span>
+              <input name="phone" type="text" required />
+            </label>
+          </div>
+        </div>
+
+        <div class="form-toolbar">
+          <button id="add-user-btn" class="secondary-btn add-user-btn" type="button">
+            Add another customer
+          </button>
+        </div>
+
+        <div class="actions">
+          <button id="submit-btn" class="primary-btn" type="submit">
+            Submit batch
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <section id="loading-state" class="panel loading-panel hidden" aria-live="polite">
+      <div class="spinner"></div>
+      <div>
+        <p class="section-kicker">In Progress</p>
+        <h2>Playwright is filling the Microsoft Form</h2>
+        <p>Please keep this page open while the automation completes.</p>
+      </div>
+    </section>
+
+    <section id="result-panel" class="panel hidden" aria-live="polite">
+      <p class="section-kicker">Latest Run</p>
+      <h2>Submission result</h2>
+      <pre id="result-output" class="result-output"></pre>
+    </section>
+
+    <section class="panel">
+      <div class="panel-header">
+        <div>
+          <p class="section-kicker">History</p>
+          <h2>Previously submitted groups</h2>
+        </div>
+      </div>
+
+      <div id="history-list" class="history-list">
+        <% if (!history.length) { %>
+          <p class="empty-state">No groups have been submitted yet.</p>
+          <% } %>
+
+            <% history.forEach((group, index)=> { %>
+              <article class="history-card" data-history-id="<%= group.id %>">
+                <div class="history-card-top">
+                  <div>
+                    <h3>Group <%= history.length - index %>
+                    </h3>
+                    <p class="history-meta">
+                      Sent <%= new Date(group.createdAt).toLocaleString() %>
+                    </p>
+                  </div>
+                  <button class="secondary-btn resend-btn" type="button"
+                    data-users="<%= encodeURIComponent(JSON.stringify(group.users)) %>">
+                    Send again
+                  </button>
+                </div>
+
+                <ul class="history-users">
+                  <% group.users.forEach((user)=> { %>
+                    <li>
+                      <strong>
+                        <%= user.name %>
+                      </strong>
+                      <span>
+                        <%= user.phone %>
+                      </span>
+                    </li>
+                    <% }) %>
+                </ul>
+              </article>
+              <% }) %>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    window.__INITIAL_HISTORY__ = <% - JSON.stringify(history) %>;
+  </script>
+  <script src="/public/app.js"></script>
+</body>
+
+</html>
