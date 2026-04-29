@@ -1,0 +1,19 @@
+FROM mcr.microsoft.com/playwright:v1.59.1-jammy
+
+# Set working directory
+WORKDIR /app
+
+# Copy dependency files first (better caching)
+COPY package.json yarn.lock ./
+
+# Install dependencies
+RUN yarn install
+
+# Copy the rest of your app
+COPY . .
+
+# Expose port (Render uses 10000 by default)
+EXPOSE 10000
+
+# Start the server
+CMD ["node", "index.js"]

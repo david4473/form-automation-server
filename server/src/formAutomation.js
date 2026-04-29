@@ -328,7 +328,6 @@ async function completeSubmission(browser, user, serviceArea) {
 async function processUsers(users) {
   const browser = await chromium.launch({
     headless: HEADLESS,
-    executablePath: undefined, // ensure it uses Playwright-managed binary
     args: ["--no-sandbox", "--disable-setuid-sandbox"],
   });
 

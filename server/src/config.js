@@ -12,7 +12,7 @@ if (!FORM_URL) {
 }
 
 const SERVICE_AREAS = ["Branch Ambience", "Branch Staff", "ATM"];
-const PORT = Number(process.env.PORT || 3000);
+const PORT = Number(process.env.PORT || 10000);
 const HEADLESS = process.env.HEADLESS !== "false";
 const NAVIGATION_TIMEOUT = 45000;
 const ACTION_DELAY_MIN = 500;
