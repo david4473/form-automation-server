@@ -15,7 +15,7 @@ import {
 import type { HistoryEntry, HistoryUser, User } from "./misc/types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL || "http://localhost:3000";
+  process.env.NEXT_PUBLIC_FORM_URL || "http://localhost:3000";
 
 export default function Home() {
   const [users, setUsers] = useState<User[]>([createEmptyUser()]);
