@@ -4,10 +4,10 @@ FROM mcr.microsoft.com/playwright:v1.59.1-jammy
 WORKDIR /app
 
 # Copy dependency files first (better caching)
-COPY package.json yarn.lock ./
+COPY package.json package-lock.json ./
 
 # Install dependencies
-RUN yarn install
+RUN npm ci
 
 # Copy the rest of your app
 COPY . .
