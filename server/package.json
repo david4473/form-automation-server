@@ -4,7 +4,8 @@
   "description": "Node.js API server for Microsoft Forms automation.",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "postinstall": "npx playwright install --with-deps"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
