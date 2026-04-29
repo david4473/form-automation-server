@@ -1,14 +1,13 @@
 {
-  "name": "microsoft-forms-automation",
+  "name": "forms-automation-server",
   "version": "1.0.0",
-  "description": "Node.js app to receive users via POST and automate Microsoft Forms submissions with Playwright.",
-  "main": "server.js",
+  "description": "Node.js API server for Microsoft Forms automation.",
+  "main": "index.js",
   "scripts": {
-    "start": "node server.js"
+    "start": "node index.js"
   },
   "dependencies": {
     "dotenv": "^16.6.1",
-    "ejs": "^3.1.10",
     "playwright": "^1.59.1"
   }
 }

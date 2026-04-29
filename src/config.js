@@ -1,4 +1,9 @@
-require("dotenv").config();
+const path = require("path");
+const dotenv = require("dotenv");
+
+dotenv.config({
+  path: path.join(__dirname, "..", ".env"),
+});
 
 const FORM_URL = process.env.FORM_URL;
 
