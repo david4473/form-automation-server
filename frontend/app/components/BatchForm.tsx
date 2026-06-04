@@ -4,18 +4,22 @@ import type { User } from "../misc/types";
 type BatchFormProps = {
   users: User[];
   isLoading: boolean;
+  soundEnabled: boolean;
   onAddUser: () => void;
   onRemoveUser: (index: number) => void;
   onUpdateUser: (index: number, field: keyof User, value: string) => void;
+  onToggleSound: () => void;
   onSubmit: (event: FormEvent<HTMLFormElement>) => void | Promise<void>;
 };
 
 export function BatchForm({
   users,
   isLoading,
+  soundEnabled,
   onAddUser,
   onRemoveUser,
   onUpdateUser,
+  onToggleSound,
   onSubmit,
 }: BatchFormProps) {
   return (
@@ -29,9 +33,48 @@ export function BatchForm({
             Add customer reviews
           </h2>
         </div>
-        <p className="text-sm text-[#6f6455]">
-          {users.length} customer(s) in this batch
-        </p>
+        <div className="flex flex-col gap-3 sm:items-end">
+          <p className="text-sm text-[#6f6455]">
+            {users.length} customer(s) in this batch
+          </p>
+          <button
+            className="inline-flex items-center justify-center gap-2 rounded-full border border-[#dbcdb8] bg-[#fffaf0] px-4 py-2 text-sm font-medium text-[#1f1a14] transition hover:bg-[#f4ead9] disabled:cursor-not-allowed disabled:opacity-60"
+            type="button"
+            aria-pressed={soundEnabled}
+            disabled={isLoading}
+            onClick={onToggleSound}
+          >
+            <svg
+              className="h-4 w-4"
+              viewBox="0 0 20 20"
+              fill="none"
+              aria-hidden="true"
+            >
+              <path
+                d="M3.75 7.5v5h3.5l4.25 3.25V4.25L7.25 7.5h-3.5Z"
+                stroke="currentColor"
+                strokeWidth="1.8"
+                strokeLinejoin="round"
+              />
+              {soundEnabled ? (
+                <path
+                  d="M14 7a4 4 0 0 1 0 6m1.75-8.25a7 7 0 0 1 0 10.5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              ) : (
+                <path
+                  d="m14.25 7.25 3.5 3.5m0-3.5-3.5 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                />
+              )}
+            </svg>
+            {soundEnabled ? "Sound on" : "Sound off"}
+          </button>
+        </div>
       </div>
 
       <form className="grid gap-5" onSubmit={onSubmit}>

@@ -27,10 +27,31 @@ type AutomationResult = {
   error?: string;
 };
 
+async function playCompletionFeedback(hasFailures: boolean, soundEnabled: boolean) {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if ("vibrate" in navigator) {
+    navigator.vibrate(hasFailures ? [80, 60, 140] : [70, 40, 70]);
+  }
+
+  if (!soundEnabled) {
+    return;
+  }
+
+  const completionSound = new Audio(
+    hasFailures ? "/error.mp3" : "/notification.mp3",
+  );
+  completionSound.volume = 0.75;
+  await completionSound.play().catch(() => {});
+}
+
 export default function Home() {
   const [users, setUsers] = useState<User[]>([createEmptyUser()]);
   const [history, setHistory] = useState<HistoryEntry[]>(readStoredHistory);
   const [isLoading, setIsLoading] = useState(false);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const [submissionProgress, setSubmissionProgress] = useState<
     SubmissionProgressItem[]
   >([]);
@@ -72,6 +93,7 @@ export default function Home() {
 
     try {
       const runResults: unknown[] = [];
+      let hasFailures = false;
 
       for (const [index, user] of usersToSubmit.entries()) {
         setSubmissionProgress((currentItems) =>
@@ -123,6 +145,7 @@ export default function Home() {
             ),
           );
         } catch (error) {
+          hasFailures = true;
           setSubmissionProgress((currentItems) =>
             currentItems.map((item, itemIndex) =>
               itemIndex === index
@@ -164,10 +187,13 @@ export default function Home() {
           return nextHistory;
         });
       }
+
+      await playCompletionFeedback(hasFailures, soundEnabled);
     } catch (error) {
       setHistoryError(
         error instanceof Error ? error.message : "Submission failed",
       );
+      await playCompletionFeedback(true, soundEnabled);
     } finally {
       setIsLoading(false);
     }
@@ -186,6 +212,8 @@ export default function Home() {
         onAddUser={addUser}
         onRemoveUser={removeUser}
         onUpdateUser={updateUser}
+        soundEnabled={soundEnabled}
+        onToggleSound={() => setSoundEnabled((currentValue) => !currentValue)}
         onSubmit={handleSubmit}
       />
 
