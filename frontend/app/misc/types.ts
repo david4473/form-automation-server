@@ -21,3 +21,13 @@ export type HistoryEntry = {
   users: HistoryUser[];
   results?: unknown[];
 };
+
+export type SubmissionStatus = "pending" | "submitting" | "success" | "error";
+
+export type SubmissionProgressItem = {
+  id: string;
+  name: string;
+  phone: string;
+  status: SubmissionStatus;
+  message?: string;
+};

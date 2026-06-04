@@ -12,17 +12,28 @@ import {
   toHistoryUsers,
   writeStoredHistory,
 } from "./misc/history";
-import type { HistoryEntry, HistoryUser, User } from "./misc/types";
+import type {
+  HistoryEntry,
+  HistoryUser,
+  SubmissionProgressItem,
+  User,
+} from "./misc/types";
 
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_FORM_URL || "http://localhost:3000";
+  process.env.NEXT_PUBLIC_FORM_URL || "http://localhost:10000";
+
+type AutomationResult = {
+  status?: string;
+  error?: string;
+};
 
 export default function Home() {
   const [users, setUsers] = useState<User[]>([createEmptyUser()]);
   const [history, setHistory] = useState<HistoryEntry[]>(readStoredHistory);
   const [isLoading, setIsLoading] = useState(false);
-  const [resultText, setResultText] = useState("");
-  const [showResult, setShowResult] = useState(false);
+  const [submissionProgress, setSubmissionProgress] = useState<
+    SubmissionProgressItem[]
+  >([]);
   const [historyError, setHistoryError] = useState("");
 
   function updateUser(index: number, field: keyof User, value: string) {
@@ -49,51 +60,114 @@ export default function Home() {
 
   async function submitUsers(usersToSubmit: HistoryUser[]) {
     setIsLoading(true);
-    setShowResult(false);
     setHistoryError("");
+    setSubmissionProgress(
+      usersToSubmit.map((user, index) => ({
+        id: `${Date.now()}-${index}`,
+        name: user.name,
+        phone: user.phone,
+        status: "pending",
+      })),
+    );
 
     try {
-      const response = await fetch(`${API_BASE_URL}/submit`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ users: usersToSubmit }),
-      });
+      const runResults: unknown[] = [];
 
-      const payload = await response.json();
+      for (const [index, user] of usersToSubmit.entries()) {
+        setSubmissionProgress((currentItems) =>
+          currentItems.map((item, itemIndex) =>
+            itemIndex === index
+              ? { ...item, status: "submitting", message: undefined }
+              : item,
+          ),
+        );
 
-      if (!response.ok || !payload.ok) {
-        throw new Error(payload.error || "Submission failed");
+        try {
+          const response = await fetch(`${API_BASE_URL}/submit`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ users: [user] }),
+          });
+
+          const payload = await response.json();
+
+          if (!response.ok || !payload.ok) {
+            throw new Error(payload.error || "Submission failed");
+          }
+
+          const results: AutomationResult[] = Array.isArray(payload.results)
+            ? payload.results
+            : [];
+          runResults.push(...results);
+
+          const failedResult = results.find(
+            (result) => result.status !== "success",
+          );
+
+          if (failedResult) {
+            const message =
+              typeof failedResult.error === "string"
+                ? failedResult.error
+                : "One or more service areas failed";
+
+            throw new Error(message);
+          }
+
+          setSubmissionProgress((currentItems) =>
+            currentItems.map((item, itemIndex) =>
+              itemIndex === index
+                ? { ...item, status: "success", message: undefined }
+                : item,
+            ),
+          );
+        } catch (error) {
+          setSubmissionProgress((currentItems) =>
+            currentItems.map((item, itemIndex) =>
+              itemIndex === index
+                ? {
+                    ...item,
+                    status: "error",
+                    message:
+                      error instanceof Error
+                        ? error.message
+                        : "Submission failed",
+                  }
+                : item,
+            ),
+          );
+        }
       }
 
-      const historyEntry: HistoryEntry = {
-        id:
-          typeof payload.historyEntry?.id === "string"
-            ? payload.historyEntry.id
-            : `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
-        createdAt:
-          typeof payload.historyEntry?.createdAt === "string"
-            ? payload.historyEntry.createdAt
-            : new Date().toISOString(),
-        users: usersToSubmit,
-        results: Array.isArray(payload.results) ? payload.results : [],
-      };
-      setHistory((currentHistory) => {
-        const nextHistory = [historyEntry, ...currentHistory].slice(
-          0,
-          HISTORY_LIMIT,
-        );
-        writeStoredHistory(nextHistory);
-        return nextHistory;
-      });
-      setResultText(JSON.stringify(payload, null, 2));
-      setShowResult(true);
+      if (
+        runResults.some(
+          (result) =>
+            typeof result === "object" &&
+            result !== null &&
+            "status" in result &&
+            result.status === "success",
+        )
+      ) {
+        const historyEntry: HistoryEntry = {
+          id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+          createdAt: new Date().toISOString(),
+          users: usersToSubmit,
+          results: runResults,
+        };
+        setHistory((currentHistory) => {
+          const nextHistory = [historyEntry, ...currentHistory].slice(
+            0,
+            HISTORY_LIMIT,
+          );
+          writeStoredHistory(nextHistory);
+          return nextHistory;
+        });
+      }
     } catch (error) {
-      setResultText(
+      setHistoryError(
         error instanceof Error ? error.message : "Submission failed",
       );
-      setShowResult(true);
     } finally {
       setIsLoading(false);
     }
@@ -116,7 +190,9 @@ export default function Home() {
       />
 
       {isLoading ? <LoadingPanel /> : null}
-      {showResult ? <ResultPanel resultText={resultText} /> : null}
+      {submissionProgress.length ? (
+        <ResultPanel items={submissionProgress} />
+      ) : null}
 
       <HistorySection
         history={history}
